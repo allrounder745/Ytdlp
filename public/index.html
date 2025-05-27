@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Downloader</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background: #0f0f0f;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .loader {
+      border: 5px solid #222;
+      border-top: 5px solid cyan;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .container {
+      margin-top: 60px;
+      max-width: 600px;
+      padding: 20px;
+      background: #1f1f1f;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #000;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      background: cyan;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .results {
+      margin-top: 20px;
+    }
+    .format {
+      background: #333;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>YouTube Downloader</h2>
+    <input id="videoURL" type="text" placeholder="Paste YouTube URL here..." />
+    <button onclick="fetchInfo()">Get Download Links</button>
+    <div class="loader" id="loader" style="display:none;"></div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <script>
+    async function fetchInfo() {
+      const url = document.getElementById("videoURL").value;
+      const loader = document.getElementById("loader");
+      const results = document.getElementById("results");
+      results.innerHTML = "";
+      loader.style.display = "block";
+
+      try {
+        const res = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        loader.style.display = "none";
+
+        if (data.error) {
+          results.innerHTML = `<p style="color:red;">${data.error}</p>`;
+          return;
+        }
+
+        results.innerHTML = `<h3>${data.title}</h3><img src="${data.thumbnail.url}" width="100%">`;
+        data.formats.forEach(f => {
+          results.innerHTML += `<div class="format">
+            <strong>${f.quality}</strong> - 
+            <a href="${f.url}" target="_blank">Download</a>
+          </div>`;
+        });
+      } catch (e) {
+        loader.style.display = "none";
+        results.innerHTML = `<p style="color:red;">Error fetching video info</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
